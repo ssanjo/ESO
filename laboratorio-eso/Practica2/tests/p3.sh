@@ -1,4 +1,4 @@
-#!/bin/bash
-sleep 4
-echo Linux
-
+test1
+test2
+test3
+test4

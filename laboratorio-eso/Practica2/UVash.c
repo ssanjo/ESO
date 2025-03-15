@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 			
 char **dividir_entrada(char *entrada, const char *delim, int* salidalong) {
     
@@ -43,6 +44,45 @@ char **dividir_entrada(char *entrada, const char *delim, int* salidalong) {
     	return tokens;
 }
 
+// devuelve -1 si el redir se hace mal
+int redir (char** entrada, int entradalong, int* hayredir, int* fout){
+	int i;
+	for (i=0; entrada[i]!=NULL ; i++){
+
+		if (strcmp (entrada[i], ">")== 0){
+			*hayredir=1;
+			break;
+		}
+	}
+
+	if (*hayredir== 0 ){
+		return 0;
+
+	}
+
+	if (i +2 != entradalong || entradalong < 3){
+		return -1;
+	}
+
+	*fout = open(entrada[entradalong - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+	if(*fout ==-1){
+		return -1;				
+	}
+				
+	dup2(*fout,1);
+	dup2(*fout,2);
+	entrada[entradalong-2] = NULL;
+		
+			
+
+	return 0;
+
+
+
+
+}
+
 //int buscar_redireccion
 int main (int argc, char* argv[]){
 	if (argc > 2){
@@ -58,7 +98,6 @@ int main (int argc, char* argv[]){
 		if(fichero == NULL){
 			char error_message[30] = "An error has occurred\n";
 			fprintf(stderr, "%s", error_message);
-			fclose(fichero);
 			exit(1)	;
 		}
 	
@@ -68,7 +107,7 @@ int main (int argc, char* argv[]){
 
 	while(1){
 
-	fflush(stdout); 
+
 
 
 		if (argc == 1){
@@ -77,7 +116,7 @@ int main (int argc, char* argv[]){
 
 		if (getline(&buff, &tam, fichero) == EOF){
 			
-	fflush(stdout); 
+
 
 			free(buff);
 			fclose(fichero);
@@ -125,24 +164,47 @@ int main (int argc, char* argv[]){
 		// el comando es otro
 		}else{
 			// el redir y fork para el & se hace aqui
-			pid_t pid= fork();
+			int hayredir = 0;
+			int fout;
+			int ori_stdout = dup(STDOUT_FILENO);
+			int ori_stderr = dup(STDERR_FILENO);
 
-			if (pid == -1){
+			if (redir (buffdiv, buffdivlong , &hayredir, &fout) == -1){
 
 				char error_message[30] = "An error has occurred\n";
 				fprintf(stderr, "%s", error_message);
+			}else{
+			
+			
+			
+			
 
+				pid_t pid= fork();
+		
+				if (pid == -1){
 
-			}else if(pid == 0){
-				
-				if(buffdiv[0] !=NULL && execvp(buffdiv[0], buffdiv) == -1){
 					char error_message[30] = "An error has occurred\n";
 					fprintf(stderr, "%s", error_message);
-					exit(0);
+					exit(1);
+	
+				}else if(pid == 0){
+					
+					if(buffdiv[0] !=NULL && execvp(buffdiv[0], buffdiv) == -1){
+						char error_message[30] = "An error has occurred\n";
+						fprintf(stderr, "%s", error_message);
+						exit(1);
+					}
+				}else{
+					int status;
+					wait( &status);
+				
 				}
-			}else{
-				int status;
-				wait( &status);
+
+				if(hayredir){
+					close(fout);
+					dup2(ori_stdout,1);
+					dup2(ori_stderr, 2);
+				}
 			}
 
 		}
