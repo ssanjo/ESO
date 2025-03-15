@@ -1,0 +1,156 @@
+Modos en vi
+
+Modo normal:
+
+Predeterminado al abrir un archivo.
+
+Modo de inserción:
+
+Permite escribir texto. Activado con i, a, o, etc.
+
+Modo de comando:
+
+Para ejecutar comandos. Activado con :.
+
+Modo visual:
+
+Para seleccionar texto. Activado con v, V o Ctrl + V.
+
+--------
+Navegación
+--------
+h - Mover cursor a la izquierda
+
+l - Mover cursor a la derecha
+
+j - Mover cursor abajo
+
+k - Mover cursor arriba
+
+0 - Ir al inicio de la línea
+
+$ - Ir al final de la línea
+
+gg - Ir al inicio del archivo
+
+G - Ir al final del archivo
+
+nG - Ir a la línea n
+
+Ctrl + d - Avanzar media página
+
+Ctrl + u - Retroceder media página
+
+Ctrl + f - Avanzar una página completa
+
+Ctrl + b - Retroceder una página completa
+
+
+--------
+Modo de Inserción
+--------
+
+i - Insertar antes del cursor
+
+I - Insertar al inicio de la línea
+
+a - Insertar después del cursor
+
+A - Insertar al final de la línea
+
+o - Insertar una nueva línea debajo
+
+O - Insertar una nueva línea arriba
+
+Esc - Salir del modo de inserción
+
+
+--------
+Edición de Texto
+--------
+
+x - Borrar un carácter
+
+X - Borrar el carácter antes del cursor
+
+dd - Borrar la línea actual
+
+dw - Borrar una palabra
+
+yy - Copiar la línea actual
+
+yw - Copiar una palabra
+
+p - Pegar después del cursor
+
+P - Pegar antes del cursor
+
+rX - Reemplazar el carácter bajo el cursor con X
+
+R - Modo sobreescritura
+
+--------
+Buscar y Reemplazar
+--------
+
+
+/texto - Buscar "texto" hacia adelante
+
+?texto - Buscar "texto" hacia atrás
+
+n - Repetir la última búsqueda hacia adelante
+
+N - Repetir la última búsqueda hacia atrás
+
+:%s/viejo/nuevo/g - Reemplazar todas las apariciones de "viejo" por "nuevo" en el archivo
+
+--------
+Modo Visual
+--------
+
+v - Selección por caracteres
+
+V - Selección por líneas
+
+Ctrl + V - Selección por columnas
+
+y - Copiar lo seleccionado
+
+d - Borrar lo seleccionado
+
+p - Pegar lo seleccionado
+
+--------
+Guardar y Salir
+--------
+
+:w - Guardar cambios
+
+:q - Salir si no hay cambios
+
+:q! - Salir sin guardar cambios
+
+:wq - Guardar y salir
+
+ZZ - Guardar y salir
+
+:x - Guardar y salir si hubo cambios
+
+Otros Comandos
+
+u - Deshacer
+
+Ctrl + r - Rehacer
+
+. - Repetir la última acción
+
+J - Unir la línea actual con la siguiente
+
+:set number - Mostrar números de línea
+
+:set nonumber - Ocultar números de línea
+
+:syntax on - Activar resaltado de sintaxis
+
+:syntax off - Desactivar resaltado de sintaxis
+
