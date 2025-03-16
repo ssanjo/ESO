@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <ctype.h>
 			
 char **dividir_entrada(char *entrada, const char *delim, int* salidalong) {
     
@@ -61,17 +62,16 @@ int redir (char** entrada, int entradalong, int* hayredir, int* fout){
 	}
 
 	if (i +2 != entradalong || entradalong < 3){
+		*hayredir =0;
 		return -1;
 	}
 
 	*fout = open(entrada[entradalong - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
 	if(*fout ==-1){
+		*hayredir = 0;
 		return -1;				
 	}
-				
-	dup2(*fout,1);
-	dup2(*fout,2);
 	entrada[entradalong-2] = NULL;
 		
 			
@@ -81,6 +81,72 @@ int redir (char** entrada, int entradalong, int* hayredir, int* fout){
 
 
 
+}
+
+int todo_espacios(char* buff){
+	int longitud = strlen(buff);
+	for(int i = 0; i< longitud; i++){
+		if (!isspace(buff[i])){
+			return 0;
+		}
+	}
+	return 1;
+}
+
+
+
+char*** div_paralelo (char** entrada, int longitud, int* num_comandos){
+	*num_comandos =1;
+	if (strcmp(entrada[0], "&")== 0){
+		return NULL;
+	}
+
+	for (int i =0; entrada[i] !=NULL; i++){
+		
+		if (strcmp(entrada[i], "&") == 0){
+
+
+			(*num_comandos)++;
+			
+			entrada[i]= NULL;
+
+					
+			
+		}
+	}
+
+
+
+    	char ***salida = malloc((* num_comandos + 1) * sizeof(char **));
+    	if (!salida) {
+
+        	return NULL;
+    	}
+	int j=0;
+	for(int i=0; i< *num_comandos; i++){
+
+		salida[i]=& entrada[j];
+		for (; j < longitud; j++){
+			if (entrada[j]== NULL){
+				j++;
+				break;
+			}
+		}	
+	}
+	return salida;
+
+
+
+
+
+
+}
+
+int cmdlen(char** comando){
+	int i;
+	for (i=0; comando[i]!= NULL;i++ ){}
+
+	return i;
 }
 
 //int buscar_redireccion
@@ -122,10 +188,20 @@ int main (int argc, char* argv[]){
 			fclose(fichero);
 			exit(0);	
 		}
+
+		
+
 		if (buff[strlen(buff)-1]== '\n'){
 
 			buff[strlen(buff)-1]= '\0';	
 		}
+
+		if (todo_espacios(buff)){
+			tam =0;
+			free(buff);
+			continue;
+		}
+
 		int buffdivlong = 0;
 		char* aux = buff;
 		char** buffdiv = dividir_entrada(buff, " \t", &buffdivlong);
@@ -168,8 +244,77 @@ int main (int argc, char* argv[]){
 			int fout;
 			int ori_stdout = dup(STDOUT_FILENO);
 			int ori_stderr = dup(STDERR_FILENO);
+			int num_comandos;
 
-			if (redir (buffdiv, buffdivlong , &hayredir, &fout) == -1){
+			char*** comandos = div_paralelo(buffdiv, buffdivlong, &num_comandos);
+			int fallo_redir = 0;
+			if (comandos==NULL){
+					char error_message[30] = "An error has occurred\n";
+					fprintf(stderr, "%s", error_message);
+
+			}else{
+				char** comando_actual;
+				int comando_actual_long;
+				for (int i=0; i< num_comandos; i++){
+					hayredir = 0;
+					comando_actual = comandos[i];
+					comando_actual_long = cmdlen(comando_actual);
+
+					if (redir (comando_actual, comando_actual_long , &hayredir, &fout) == -1){
+
+						char error_message[30] = "An error has occurred\n";
+						fprintf(stderr, "%s", error_message);
+						fallo_redir = 1;
+						break;
+					}
+			
+			
+			
+			
+
+					pid_t pid= fork();
+					
+					if (pid == -1){
+
+						char error_message[30] = "An error has occurred\n";
+						fprintf(stderr, "%s", error_message);
+						exit(1);
+	
+					}else if(pid == 0){
+						if(hayredir){
+							dup2(fout, 1);
+							dup2(fout, 2);
+						}				
+
+
+
+						if(comando_actual[0] !=NULL&& strcmp(comando_actual[0], "\0") && execvp(comando_actual[0], comando_actual) == -1){
+							char error_message[30] = "An error has occurred\n";
+							fprintf(stderr, "%s", error_message);									}else{							
+							if(hayredir){
+								close(fout);
+								dup2(ori_stdout,1);
+								dup2(ori_stderr, 2);
+							}
+
+							
+						}	
+
+							exit(1);
+					}
+				}			
+			
+				if (!fallo_redir){
+					for(int i =0; i< num_comandos; i++){
+						wait(NULL);
+					}
+				}
+
+				free(comandos);
+			}
+
+
+		/*	if (redir (buffdiv, buffdivlong , &hayredir, &fout) == -1){
 
 				char error_message[30] = "An error has occurred\n";
 				fprintf(stderr, "%s", error_message);
@@ -189,7 +334,7 @@ int main (int argc, char* argv[]){
 	
 				}else if(pid == 0){
 					
-					if(buffdiv[0] !=NULL && execvp(buffdiv[0], buffdiv) == -1){
+					if(buffdiv[0] !=NULL&& strcmp(buffdiv[0], "\0") && execvp(buffdiv[0], buffdiv) == -1){
 						char error_message[30] = "An error has occurred\n";
 						fprintf(stderr, "%s", error_message);
 						exit(1);
@@ -207,7 +352,7 @@ int main (int argc, char* argv[]){
 				}
 			}
 
-		}
+		}*/
 		
 		/*		if (strncmp(buff, "exit", 4)==0){
 		
@@ -233,7 +378,7 @@ int main (int argc, char* argv[]){
 			exit(0);	
 		}
 */
-
+		}
 		free(aux);
 		free(buffdiv);
 		buff =NULL;

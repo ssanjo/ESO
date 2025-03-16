@@ -1,3 +1,18 @@
-ls: no se puede acceder a '>': No existe el fichero o el directorio
+&
+bash.sh
+dada
+diff
 hola.txt
-UVash> 
+l
+l.txt
+output.10
+output.12
+prueba2.sh
+prueba.sh
+README.md
+tests
+tests-out
+test-UVash.sh
+UVash
+UVash.c
+whitespace!

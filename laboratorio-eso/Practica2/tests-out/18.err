@@ -1,0 +1,4 @@
+./tests/p3.sh: 1: test1: not found
+./tests/p3.sh: 2: test2: not found
+./tests/p3.sh: 3: test3: not found
+./tests/p3.sh: 4: test4: not found
